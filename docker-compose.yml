@@ -1,0 +1,41 @@
+version: '3.5'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    ports:
+      - "8080:8080"
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - "POSTGRES_PASSWORD=postgres"
+    ports:
+      - "5430:5432"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-q",
+          "-d",
+          "antifraud",
+          "-U",
+          "mercuryo"
+        ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
